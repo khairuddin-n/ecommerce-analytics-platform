@@ -1,0 +1,14 @@
+# Testing
+pytest==7.4.4
+pytest-cov==4.1.0
+pytest-spark==0.6.0
+
+# Code quality
+black==23.12.1
+flake8==6.1.0
+isort==5.13.2
+mypy==1.8.0
+
+# Development
+ipython==8.19.0
+jupyter==1.0.0
