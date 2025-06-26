@@ -32,6 +32,7 @@ python scripts/download_data.py
 
 # Run pipeline
 python -m src.pipeline.main
+```
 
 ## 📁 Project Structure  
 ```bash
