@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 from typing import Optional
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -25,12 +25,12 @@ class Settings(BaseSettings):
     snowflake_user: Optional[str] = os.getenv("SNOWFLAKE_USER")
     snowflake_password: Optional[str] = os.getenv("SNOWFLAKE_PASSWORD")
     snowflake_warehouse: str = os.getenv("SNOWFLAKE_WAREHOUSE", "COMPUTE_WH")
-    snowflake_database: str = os.getenv("SNOWFLAKE_DATABASE", "WALMART_ANALYTICS")
+    snowflake_database: str = os.getenv("SNOWFLAKE_DATABASE", "ECOMMERCE_ANALYTICS")
     snowflake_schema: str = os.getenv("SNOWFLAKE_SCHEMA", "RAW")
     snowflake_role: str = os.getenv("SNOWFLAKE_ROLE", "ACCOUNTADMIN")
     
     # Spark
-    spark_app_name: str = "WalmartAnalytics"
+    spark_app_name: str = "EcommerceAnalytics"
     spark_driver_memory: str = os.getenv("SPARK_DRIVER_MEMORY", "4g")
     spark_executor_memory: str = os.getenv("SPARK_EXECUTOR_MEMORY", "4g")
     spark_max_result_size: str = os.getenv("SPARK_MAX_RESULT_SIZE", "2g")

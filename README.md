@@ -1,6 +1,6 @@
 # E-Commerce Analytics Platform
 
-Production-grade analytics platform for processing Walmart e-commerce sales data using modern data engineering stack.
+Production-grade analytics platform for processing e-commerce sales data using modern data engineering stack.
 
 **Status**: 🚧 Work in Progress
 
@@ -14,10 +14,11 @@ Production-grade analytics platform for processing Walmart e-commerce sales data
 
 ## 📊 Dataset
 
-- **Source**: Walmart E-Commerce Sales Data
-- **Size**: ~550MB
-- **Records**: 500k+ transactions
-- **Time Period**: 2019-2020
+- **Source**: E-Commerce Data (Retail transactions from UK-based online retailer)
+- **Size**: ~45MB
+- **Records**: 540k+ transactions
+- **Time Period**: 2010-2011
+- **Features**: Invoice details, Product information, Customer data, 8 countries
 
 ## 🚀 Quick Start
 
