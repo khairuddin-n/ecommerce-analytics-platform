@@ -1,0 +1,21 @@
+FROM bitnami/spark:3.5.0
+
+USER root
+
+# Install additional Python packages
+COPY requirements.txt /requirements.txt
+
+# Install only necessary packages for Spark
+RUN pip install --no-cache-dir \
+    pandas==2.1.4 \
+    numpy==1.24.3 \
+    pyarrow==14.0.1 \
+    python-dotenv==1.0.0
+
+USER 1001
+
+# Copy application code
+COPY --chown=1001:root src /opt/spark-apps/src
+
+# Set Python path
+ENV PYTHONPATH=/opt/spark-apps:${PYTHONPATH}

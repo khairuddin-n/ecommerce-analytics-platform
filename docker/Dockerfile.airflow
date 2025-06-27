@@ -1,0 +1,27 @@
+FROM apache/airflow:2.8.0-python3.11
+
+USER root
+
+# Install Java with retry logic and mirror fallback
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    --option=Acquire::Retries=3 \
+    --option=Acquire::http::Timeout=120 \
+    default-jre-headless \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set JAVA_HOME
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+USER airflow
+
+# Copy and install requirements
+COPY requirements.txt /requirements.txt
+RUN pip install --no-cache-dir --timeout=120 -r /requirements.txt
+
+# Copy source code
+COPY --chown=airflow:root src /opt/airflow/src
+COPY --chown=airflow:root pytest.ini /opt/airflow/
+COPY --chown=airflow:root setup.cfg /opt/airflow/
