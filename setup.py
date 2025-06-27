@@ -6,5 +6,5 @@ setup(
     author="Khairuddin Nasty",
     description="Production-grade analytics platform for e-commerce data",
     packages=find_packages(),
-    python_requires=">=3.9",
+    python_requires=">=3.11",
 )
