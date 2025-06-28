@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from typing import Optional
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic import Field
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -15,11 +15,12 @@ class Settings(BaseSettings):
     
     # Environment
     env: str = os.getenv("ENV", "development")
+    debug: bool = os.getenv("DEBUG", "false").lower() == "true"  # Added debug
     
-    # Paths
+    # Paths - Fixed paths to avoid Pydantic issues
     project_root: Path = Path(__file__).parent.parent.parent
-    data_path_raw: Path = project_root / "data" / "raw"
-    data_path_processed: Path = project_root / "data" / "processed"
+    data_path_raw: Path = Path(__file__).parent.parent.parent / "data" / "raw"
+    data_path_processed: Path = Path(__file__).parent.parent.parent / "data" / "processed"
     
     # Snowflake
     snowflake_account: Optional[str] = os.getenv("SNOWFLAKE_ACCOUNT")
@@ -35,22 +36,36 @@ class Settings(BaseSettings):
     spark_driver_memory: str = os.getenv("SPARK_DRIVER_MEMORY", "4g")
     spark_executor_memory: str = os.getenv("SPARK_EXECUTOR_MEMORY", "4g")
     spark_max_result_size: str = os.getenv("SPARK_MAX_RESULT_SIZE", "2g")
+    spark_log_level: str = "WARN"
     
     # Logging
-    log_level: str = os.getenv("LOG_LEVEL", "INFO")
-
-    @field_validator("log_level")
-    @classmethod
-    def validate_log_level(cls, v: str) -> str:
-        """Ensure log level is uppercase and valid"""
-        v = v.upper()
-        valid_levels = ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
-        if v not in valid_levels:
-            return "INFO"
-        return v
+    log_level: str = os.getenv("LOG_LEVEL", "INFO").upper()
+    
+    # Performance
+    enable_profiling: bool = os.getenv("ENABLE_PROFILING", "false").lower() == "true"
+    enable_metrics: bool = os.getenv("ENABLE_METRICS", "true").lower() == "true"
+    metrics_port: int = 8000
 
     class Config:
         case_sensitive = False
 
-# Create global settings instance
+# Create settings instance
 settings = Settings()
+
+# Simple analytics config
+class AnalyticsConfig:
+    """Analytics configuration"""
+    def __init__(self):
+        self.high_value_threshold = float(os.getenv("HIGH_VALUE_THRESHOLD", "100.0"))
+        self.bulk_order_threshold = int(os.getenv("BULK_ORDER_THRESHOLD", "100"))
+        self.large_order_threshold = 20
+        self.medium_order_threshold = 5
+        self.premium_price_threshold = 50.0
+        self.standard_price_threshold = 10.0
+        self.economy_price_threshold = 5.0
+        self.min_rows_threshold = 1000
+        self.max_duplicate_rate = 0.05
+        self.cache_enabled = True
+        self.batch_size = 10000
+
+analytics_config = AnalyticsConfig()
