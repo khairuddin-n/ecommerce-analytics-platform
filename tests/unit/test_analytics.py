@@ -169,3 +169,97 @@ class TestAnalyticsEngine:
         
         # Day of week should be 1-7
         assert result.filter((F.col("day_of_week") < 1) | (F.col("day_of_week") > 7)).count() == 0
+
+    def test_segment_customers_optimized(self, spark):
+        """Test optimized customer segmentation"""
+        analytics = AnalyticsEngine()
+        
+        # Create larger test dataset
+        data = []
+        for i in range(100):
+            data.append((
+                f"CUST{i:03d}", 
+                "UK", 
+                i % 20 + 1,  # orders
+                i % 15 + 1,  # products
+                float(i * 100),  # spent
+                i * 10,  # items
+                float(i * 10),  # avg order
+                "2010-01-01",
+                "2010-12-31",
+                30,
+                i % 5  # high value orders
+            ))
+        
+        columns = ["customer_id", "country", "total_orders", "unique_products", 
+                "total_spent", "total_items", "avg_order_value", "first_order_date", 
+                "last_order_date", "active_days", "high_value_orders"]
+        
+        df = spark.createDataFrame(data, columns).select(
+            F.col("customer_id"), F.col("country"), F.col("total_orders"),
+            F.col("unique_products"), F.col("total_spent"), F.col("total_items"),
+            F.col("avg_order_value"), 
+            F.to_date(F.lit("2010-01-01")).alias("first_order_date"),
+            F.to_date(F.lit("2010-12-31")).alias("last_order_date"),
+            F.col("active_days"), F.col("high_value_orders")
+        )
+        
+        # Add required columns
+        df = df.withColumn("customer_lifetime_days", F.lit(365)) \
+            .withColumn("order_frequency", F.col("total_orders") / 365 * 30) \
+            .withColumn("avg_basket_size", F.col("total_items") / F.col("total_orders")) \
+            .withColumn("high_value_rate", F.col("high_value_orders") / F.col("total_orders"))
+        
+        # Test segmentation - use percentile_approx instead of approx_quantile
+        result = analytics._segment_customers_optimized(df)
+        
+        # Verify all customers got segments
+        assert result.filter(F.col("customer_segment").isNull()).count() == 0
+        
+        # Verify segments exist
+        segments = result.select("customer_segment").distinct().collect()
+        segment_names = [row["customer_segment"] for row in segments]
+        
+        # Should have multiple segments
+        assert len(segment_names) > 3
+        assert any(seg in segment_names for seg in ["Champions", "Loyal Customers", "New Customers"])
+
+    def test_calculate_country_metrics_with_top_products(self, spark, transformed_data):
+        """Test country metrics with top products calculation"""
+        analytics = AnalyticsEngine()
+        
+        # Calculate metrics
+        result = analytics.calculate_country_metrics(transformed_data)
+        
+        # Check new columns
+        assert "revenue_share" in result.columns
+        assert "customer_share" in result.columns
+        assert "market_tier" in result.columns
+        assert "top_3_products" in result.columns
+        
+        # Verify market tiers
+        tiers = result.select("market_tier").distinct().collect()
+        tier_names = [row["market_tier"] for row in tiers]
+        assert any(tier in tier_names for tier in ["Tier 1", "Tier 2", "Tier 3", "Tier 4"])
+
+    def test_calculate_hourly_patterns_with_peak_detection(self, spark, transformed_data):
+        """Test hourly patterns with peak hour detection"""
+        analytics = AnalyticsEngine()
+        
+        # Calculate patterns
+        result = analytics.calculate_hourly_patterns(transformed_data)
+        
+        # Check new columns
+        assert "time_period" in result.columns
+        assert "is_peak_hour" in result.columns
+        assert "transaction_share" in result.columns
+        assert "revenue_share" in result.columns
+        
+        # Verify time periods
+        periods = result.select("time_period").distinct().collect()
+        period_names = [row["time_period"] for row in periods]
+        assert all(period in ["Morning", "Afternoon", "Evening", "Night"] for period in period_names)
+        
+        # Verify peak hours exist
+        peak_hours = result.filter(F.col("is_peak_hour") == 1).count()
+        assert peak_hours > 0

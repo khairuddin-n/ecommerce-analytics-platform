@@ -150,3 +150,97 @@ class TestDataTransformer:
         # Should drop rows with null invoice or product
         assert result.count() == 1
         assert result.filter(F.col("invoice_no") == "INV001").count() == 1
+
+    def test_clean_data_optimized(self, spark):
+        """Test optimized data cleaning"""
+        transformer = DataTransformer()
+        
+        # Create test data with various issues
+        data = [
+            ("INV001", "PROD001", "Product 1", 5, "12/1/2010 8:26", 10.0, "CUST001", "UK"),
+            ("INV001", "PROD001", "Product 1", 5, "12/1/2010 8:26", 10.0, "CUST001", "UK"),  # Duplicate
+            ("INV002", "PROD002", "Product 2", -3, "12/1/2010 9:00", 15.0, "CUST002", "UK"),  # Negative qty
+            ("INV003", "PROD003", "Product 3", 2, "12/1/2010 10:00", 0.0, "CUST003", "UK"),   # Zero price
+            ("INV004", "PROD004", "Product 4", 15000, "12/1/2010 11:00", 20.0, None, "UK"),   # Extreme qty
+            ("INV005", "PROD005", "Product 5", 10, "12/1/2010 12:00", 15000.0, None, "UK"),   # Extreme price
+        ]
+        columns = ["InvoiceNo", "StockCode", "Description", "Quantity", 
+                "InvoiceDate", "UnitPrice", "CustomerID", "Country"]
+        
+        df = spark.createDataFrame(data, columns)
+        
+        # Standardize and clean
+        standardized = transformer.standardize_columns(df)
+        result = transformer.clean_data(standardized)
+        
+        # Should filter out invalid records
+        assert result.count() == 1  # Only first record is valid
+        assert result.filter(F.col("invoice_no") == "INV001").count() == 1
+
+    def test_add_product_flags(self, spark):
+        """Test product flag addition"""
+        transformer = DataTransformer()
+        
+        # Create test data with specific descriptions
+        data = [
+            ("INV001", "PROD001", "VINTAGE FLOWER VASE", 1, "12/1/2010 8:00", 50.0, "CUST001", "UK"),
+            ("INV002", "PROD002", "CHRISTMAS DECORATION SET", 2, "12/1/2010 9:00", 25.0, "CUST002", "UK"),
+            ("INV003", "PROD003", "GIFT WRAP PAPER", 5, "12/1/2010 10:00", 5.0, "CUST003", "UK"),
+            ("INV004", "PROD004", "REGULAR ITEM", 1, "12/1/2010 11:00", 10.0, "CUST004", "UK"),
+        ]
+        columns = ["InvoiceNo", "StockCode", "Description", "Quantity", 
+                "InvoiceDate", "UnitPrice", "CustomerID", "Country"]
+        
+        df = spark.createDataFrame(data, columns)
+        
+        # Process
+        standardized = transformer.standardize_columns(df)
+        cleaned = transformer.clean_data(standardized)
+        result = transformer.add_business_flags(cleaned)
+        
+        # Check product flags
+        assert "is_vintage" in result.columns
+        assert "is_christmas" in result.columns
+        assert "is_gift" in result.columns
+        
+        # Verify flag values
+        vintage_count = result.filter(F.col("is_vintage") == 1).count()
+        christmas_count = result.filter(F.col("is_christmas") == 1).count()
+        gift_count = result.filter(F.col("is_gift") == 1).count()
+        
+        assert vintage_count == 1
+        assert christmas_count == 1
+        assert gift_count == 1
+
+    def test_add_business_flags_with_config(self, spark, monkeypatch):
+        """Test business flags use configuration values"""
+        # Mock config values
+        from src.utils.config import analytics_config
+        monkeypatch.setattr(analytics_config, "high_value_threshold", 50.0)
+        monkeypatch.setattr(analytics_config, "bulk_order_threshold", 100)
+        
+        transformer = DataTransformer()
+        
+        # Create test data
+        data = [
+            ("INV001", "PROD001", "Product 1", 150, "12/1/2010 8:00", 1.0, "CUST001", "UK"),  # Bulk order, total=150
+            ("INV002", "PROD002", "Product 2", 10, "12/1/2010 9:00", 4.0, "CUST002", "UK"),   # Not high value, total=40
+        ]
+        columns = ["InvoiceNo", "StockCode", "Description", "Quantity", 
+                "InvoiceDate", "UnitPrice", "CustomerID", "Country"]
+        
+        df = spark.createDataFrame(data, columns)
+        
+        # Process
+        standardized = transformer.standardize_columns(df)
+        cleaned = transformer.clean_data(standardized)
+        result = transformer.add_business_flags(cleaned)
+        
+        # Verify flags use config values
+        bulk_orders = result.filter(F.col("order_size") == "Bulk").count()
+        high_value_orders = result.filter(F.col("is_high_value") == 1).count()
+        
+        assert bulk_orders == 1
+        # First order: 150 * 1 = 150 (high value)
+        # Second order: 10 * 4 = 40 (not high value)
+        assert high_value_orders == 1
