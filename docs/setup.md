@@ -85,19 +85,22 @@ python -c "from src.pipeline.main import EcommerceAnalyticsPipeline; print('✅ 
 ## Performance Expectations
 
 With the default configuration:
-- **Pipeline completion**: ~30-35 seconds
-- **Memory usage**: 2-4GB peak
-- **Output size**: ~15MB (6 Parquet datasets)
-- **Records processed**: 519,589 (from 541,909 raw)
+- **Pipeline completion**: ~52 seconds
+- **Memory usage**: 3-4GB peak
+- **Output size**: ~13MB (6 Parquet datasets + reports)
+- **Records processed**: 519,582 (from 541,909 raw)
+- **Quality score**: 65% (typical for e-commerce data)
 
 ### Output Files
 After successful run, check `data/processed/`:
-- `enriched_data/`: Full transformed dataset
-- `customer_metrics/`: 4,355 customer profiles
-- `product_metrics/`: 4,161 product analyses
-- `daily_metrics/`: 305 daily summaries
-- `country_metrics/`: 38 country statistics
-- `hourly_patterns/`: 168 hourly patterns  
+- `enriched_data/`: 12MB - Full transformed dataset
+- `customer_metrics/`: 312KB - 4,354 customer profiles  
+- `product_metrics/`: 428KB - 4,158 product analyses
+- `daily_metrics/`: 64KB - 305 daily summaries
+- `country_metrics/`: 28KB - 38 country statistics
+- `hourly_patterns/`: 28KB - 168 hourly patterns
+- `summary_report.json`: 4KB - Execution summary
+- `pipeline_results.json`: 8KB - Detailed metrics
 
 ## Configuration   
 
@@ -178,20 +181,24 @@ export PYTHONPATH=$PWD:$PYTHONPATH
 - "No Partition Defined for Window operation" - Expected for small dataset  
 
 ## Testing
+
 ```bash
 # Run all tests
 make test
 
 # Run with coverage
 make test-coverage
-# Current coverage: 69%
+# Current coverage: 82%
 
-# Run without Spark tests (for cleaner results)
-pytest -k "not spark" --cov=src
-
-# View coverage report
-open htmlcov/index.html
+# Run specific test suites
+make test-unit      # Unit tests only
+make test-integration # Integration tests
 ```  
+Test results:
+- 65 tests passed
+- 6 tests skipped (Docker-specific)
+- 82% code coverage
+- Test execution: ~2.5 minutes
 
 ## Development  
 ```bash  

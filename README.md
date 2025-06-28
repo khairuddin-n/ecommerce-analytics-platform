@@ -5,17 +5,18 @@
 [![Airflow](https://img.shields.io/badge/airflow-2.8.0-green.svg)](https://airflow.apache.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 [![Tests](https://img.shields.io/badge/tests-passing-green.svg)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-69%25-yellow.svg)](htmlcov/index.html)
+[![Coverage](https://img.shields.io/badge/coverage-82%25-green.svg)](htmlcov/index.html)
 
 Production-grade analytics platform for processing e-commerce transaction data using PySpark, Airflow, and modern data engineering practices.
 
 ## 🚀 Features
 
-- **Scalable Processing**: Handles 540k+ transactions in ~33 seconds
+- **Scalable Processing**: Handles 540k+ transactions in ~52 seconds
 - **Comprehensive Analytics**: Customer segmentation, product performance, time-series analysis
-- **Data Quality**: Automated validation and quality checks
+- **Data Quality**: 20+ automated validation checks with configurable thresholds
 - **Production Ready**: Docker containerization, Airflow orchestration, comprehensive testing
 - **Optimized Performance**: Adaptive query execution, efficient caching, partition management
+- **Monitoring**: Built-in metrics collection and performance profiling
 
 ## 🏗️ Architecture  
 // gambar arsitektur  
@@ -40,7 +41,7 @@ Production-grade analytics platform for processing e-commerce transaction data u
 - **Orchestration**: Apache Airflow 2.8.0
 - **Storage**: Parquet format
 - **Containerization**: Docker & Docker Compose
-- **Testing**: Pytest (69% coverage)
+- **Testing**: Pytest (80% coverage)
 - **Language**: Python 3.11+
 
 ## 📋 Prerequisites
@@ -138,15 +139,24 @@ open htmlcov/index.html
 ```  
 Current test coverage: 85%+  
 
-## 📈 Performance
-- Processes 541,909 records in ~33 seconds
-- Cleans and transforms to 519,589 records
-- Analyzes 4,355 customers and 4,161 products
-- Optimized with Spark's adaptive query execution
-- Efficient memory usage with smart caching
-- Scalable to millions of records with cluster mode
+## 📊 Dataset & Performance
+
+- **Source**: E-Commerce Data (UK retail transactions)
+- **Size**: 44MB CSV
+- **Records**: 541,909 transactions (519,582 after cleaning - 95.9% retention)
+- **Processing Time**: ~52 seconds end-to-end
+- **Throughput**: 10,000+ records/second
+- **Test Coverage**: 82% (up from 69%)
 
 See [Performance Guide](docs/performance.md) for optimization details.  
+
+## 🔍 Data Quality
+
+The pipeline includes 20 comprehensive quality checks:
+- **13 Passed**: Schema compliance, data types, referential integrity
+- **7 Warnings**: Normal for e-commerce data (outliers, UK concentration)
+- **0 Failed**: No critical issues
+- **Quality Score**: 65% (acceptable for production)
 
 ## 📚 Documentation  
 - [Architecture Overview](docs/architecture.md)

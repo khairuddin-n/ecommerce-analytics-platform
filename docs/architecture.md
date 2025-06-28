@@ -5,28 +5,36 @@
 
 ## Data Flow
 
-1. **Data Ingestion**
-   - Read CSV data from Kaggle e-commerce dataset
+1. **Data Ingestion** (~4.5s)
+   - Read CSV data (44MB) from Kaggle e-commerce dataset
    - Schema validation and type casting
    - Initial data quality checks
 
-2. **Data Transformation**
+2. **Data Transformation** (~2.9s)
    - Column standardization
    - Data cleaning (nulls, duplicates, invalid values)
    - Date parsing and feature engineering
    - Business flag creation
+   - **Output**: 519,582 clean records (95.9% retention)
 
-3. **Analytics Processing**
-   - Customer segmentation (RFM-based)
-   - Product performance analysis
-   - Time series aggregations
-   - Geographic distribution analysis
-   - Hourly pattern detection
+3. **Analytics Processing** (~4.7s)
+   - Customer segmentation: 4,354 customers analyzed
+   - Product performance: 4,158 products evaluated
+   - Time series: 305 days of patterns
+   - Geographic: 38 countries covered
+   - Hourly patterns: 168 hour×day combinations
 
-4. **Data Storage**
-   - Partitioned Parquet files for efficiency
+4. **Data Quality Checks** (~9.5s)
+   - 20 comprehensive quality checks
+   - Statistical outlier detection
+   - Business rule validation
+   - Data consistency verification
+
+5. **Data Storage** (~22.5s)
+   - Partitioned Parquet files (13MB total)
    - Separate outputs for each analysis type
    - Compressed storage with Snappy
+   - Optimized partitioning by date/country
 
 ## Component Details
 
