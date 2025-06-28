@@ -52,13 +52,13 @@ test: ## Run all tests
 	pytest tests/ -v
 
 test-unit: ## Run unit tests only
-	pytest tests/unit -v
+	ENABLE_METRICS=false pytest tests/unit -v
 
-test-integration: ## Run integration tests only
-	pytest tests/integration -v
+test-integration: ## Run integration tests only  
+	ENABLE_METRICS=false pytest tests/integration -v
 
 test-coverage: ## Run tests with coverage report
-	pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=html
+	ENABLE_METRICS=false pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=html
 
 test-fast: ## Run tests in parallel
 	pytest tests/ -v -n auto
