@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import Optional
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -37,7 +38,17 @@ class Settings(BaseSettings):
     
     # Logging
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
-    
+
+    @field_validator("log_level")
+    @classmethod
+    def validate_log_level(cls, v: str) -> str:
+        """Ensure log level is uppercase and valid"""
+        v = v.upper()
+        valid_levels = ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
+        if v not in valid_levels:
+            return "INFO"
+        return v
+
     class Config:
         case_sensitive = False
 

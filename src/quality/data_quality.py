@@ -73,7 +73,15 @@ class DataQualityChecker:
     def _check_duplicates(self, df: DataFrame):
         """Check for duplicate records"""
         total_count = df.count()
-        unique_count = df.dropDuplicates(["invoice_no", "product_id", "invoice_datetime"]).count()
+        
+        # Check which columns exist
+        dup_cols = ["invoice_no", "product_id"]
+        if "invoice_datetime" in df.columns:
+            dup_cols.append("invoice_datetime")
+        elif "invoice_date" in df.columns:
+            dup_cols.append("invoice_date")
+        
+        unique_count = df.dropDuplicates(dup_cols).count()
         duplicate_count = total_count - unique_count
         
         if duplicate_count == 0:

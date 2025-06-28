@@ -7,7 +7,8 @@ from typing import Optional
 from pyspark.sql import functions as F
 
 # Add project root to path
-sys.path.append(str(Path(__file__).parent.parent.parent))
+project_root = Path(__file__).parent.parent 
+sys.path.append(str(project_root))
 
 from src.utils.spark_manager import SparkManager
 from src.utils.logger import logger

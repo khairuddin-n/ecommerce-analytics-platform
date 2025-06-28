@@ -107,15 +107,15 @@ class DataTransformer:
         """Add calculated columns"""
         logger.info("Adding derived columns")
         
+        # Fix weekofyear deprecation
         df = df.withColumn("year", F.year("invoice_date")) \
-               .withColumn("month", F.month("invoice_date")) \
-               .withColumn("day", F.dayofmonth("invoice_date")) \
-               .withColumn("hour", F.hour("invoice_datetime")) \
-               .withColumn("day_of_week", F.dayofweek("invoice_date")) \
-               .withColumn("is_weekend", 
-                          F.when(F.col("day_of_week").isin([1, 7]), 1).otherwise(0)) \
-               .withColumn("quarter", F.quarter("invoice_date")) \
-               .withColumn("week_of_year", F.weekofyear("invoice_date"))
+            .withColumn("month", F.month("invoice_date")) \
+            .withColumn("day", F.dayofmonth("invoice_date")) \
+            .withColumn("hour", F.hour("invoice_datetime")) \
+            .withColumn("day_of_week", F.dayofweek("invoice_date")) \
+            .withColumn("is_weekend", 
+                        F.when(F.col("day_of_week").isin([1, 7]), 1).otherwise(0)) \
+            .withColumn("quarter", F.quarter("invoice_date")) 
         
         # Time-based features
         df = df.withColumn("is_morning", 
