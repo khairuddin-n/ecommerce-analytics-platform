@@ -250,7 +250,7 @@ class EcommerceAnalyticsPipeline:
             self._save_dataframe(df, output_path / name, partition_cols)
     
     def _save_dataframe(self, df: DataFrame, path: Path, 
-                       partition_cols: Optional[list] = None) -> None:
+                    partition_cols: Optional[list] = None) -> None:
         """Save DataFrame with optimal configuration"""
         row_count = df.count()
         
@@ -272,11 +272,22 @@ class EcommerceAnalyticsPipeline:
         else:
             writer = writer.write
         
-        writer \
-            .mode("overwrite") \
-            .option("compression", "snappy") \
-            .option("maxRecordsPerFile", "100000") \
-            .parquet(str(path))
+        try:
+            writer \
+                .mode("overwrite") \
+                .option("compression", "snappy") \
+                .option("maxRecordsPerFile", "100000") \
+                .parquet(str(path))
+        except Exception as e:
+            logger.warning(f"Failed to save with overwrite, trying delete and recreate: {e}")
+            import shutil
+            if path.exists():
+                shutil.rmtree(path)
+            writer \
+                .mode("overwrite") \
+                .option("compression", "snappy") \
+                .option("maxRecordsPerFile", "100000") \
+                .parquet(str(path))
     
     def _get_partition_columns(self, dataset_name: str) -> list:
         """Determine partition columns based on dataset"""

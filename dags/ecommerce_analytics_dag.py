@@ -73,7 +73,13 @@ run_pipeline = BashOperator(
     bash_command="""
     cd /opt/airflow && \
     export PYTHONPATH=/opt/airflow:$PYTHONPATH && \
-    python -m src.pipeline.main
+    echo "Current directory: $(pwd)" && \
+    echo "Python path: $PYTHONPATH" && \
+    echo "Checking src module:" && \
+    ls -la /opt/airflow/src/ && \
+    echo "Checking data:" && \
+    ls -la /opt/airflow/data/raw/ && \
+    python -m src.pipeline.main 2>&1
     """,
     dag=dag
 )

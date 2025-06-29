@@ -41,7 +41,7 @@
 ### Ingestion Layer
 - **Technology**: PySpark
 - **Input**: CSV files (~50MB)  
-- **Records**: 541,909 transactions  # Tambahkan ini
+- **Records**: 541,909 transactions  
 - **Schema**: 8 columns (invoice, product, customer data)
 - **Validation**: Schema enforcement, null checks
 
